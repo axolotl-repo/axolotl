@@ -1,0 +1,27 @@
+pytest test/execution_summary_test.py::ExecutionSummaryTest::test_status_with_task_retry
+RUN EVERY COMMAND
+0
+
+
+============================= test session starts ==============================
+platform linux -- Python 3.8.3, pytest-7.3.1, pluggy-1.0.0
+rootdir: /home/user/BugsInPy/temp/projects/luigi
+collected 1 item
+
+test/execution_summary_test.py .                                         [100%]
+
+=============================== warnings summary ===============================
+../../../../../../opt/conda/envs/5c9e96767d755e0f0b69108583f8841b/lib/python3.8/site-packages/luigi-2.4.0-py3.8.egg/luigi/parameter.py:28
+  /opt/conda/envs/5c9e96767d755e0f0b69108583f8841b/lib/python3.8/site-packages/luigi-2.4.0-py3.8.egg/luigi/parameter.py:28: DeprecationWarning: Using or importing the ABCs from 'collections' instead of from 'collections.abc' is deprecated since Python 3.3, and in 3.9 it will stop working
+    from collections import OrderedDict, Mapping
+
+../../../../../../opt/conda/envs/5c9e96767d755e0f0b69108583f8841b/lib/python3.8/site-packages/luigi-2.4.0-py3.8.egg/luigi/scheduler.py:208
+  /opt/conda/envs/5c9e96767d755e0f0b69108583f8841b/lib/python3.8/site-packages/luigi-2.4.0-py3.8.egg/luigi/scheduler.py:208: DeprecationWarning: Using or importing the ABCs from 'collections' instead of from 'collections.abc' is deprecated since Python 3.3, and in 3.9 it will stop working
+    class OrderedSet(collections.MutableSet):
+
+../../../../../../opt/conda/envs/5c9e96767d755e0f0b69108583f8841b/lib/python3.8/site-packages/luigi-2.4.0-py3.8.egg/luigi/scheduler.py:98: 21 warnings
+  /opt/conda/envs/5c9e96767d755e0f0b69108583f8841b/lib/python3.8/site-packages/luigi-2.4.0-py3.8.egg/luigi/scheduler.py:98: DeprecationWarning: inspect.getargspec() is deprecated since Python 3.0, use inspect.signature() or inspect.getfullargspec()
+    fn_args = inspect.getargspec(fn)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================== 1 passed, 23 warnings in 0.05s ========================

@@ -1,0 +1,23 @@
+pytest test/central_planner_test.py::CentralPlannerTest::test_re_enable_failed_task_assistant
+RUN EVERY COMMAND
+0
+
+
+============================= test session starts ==============================
+platform linux -- Python 3.8.3, pytest-7.3.1, pluggy-1.0.0
+rootdir: /home/user/BugsInPy/temp/projects/luigi
+collected 1 item
+
+test/central_planner_test.py .                                           [100%]
+
+=============================== warnings summary ===============================
+../../../../../../opt/conda/envs/5ecd7f54d630660b3e369219c416d6bd/lib/python3.8/site-packages/pkg_resources/__init__.py:121
+  /opt/conda/envs/5ecd7f54d630660b3e369219c416d6bd/lib/python3.8/site-packages/pkg_resources/__init__.py:121: DeprecationWarning: pkg_resources is deprecated as an API
+    warnings.warn("pkg_resources is deprecated as an API", DeprecationWarning)
+
+../../../../../../opt/conda/envs/5ecd7f54d630660b3e369219c416d6bd/lib/python3.8/site-packages/nose/importer.py:12
+  /opt/conda/envs/5ecd7f54d630660b3e369219c416d6bd/lib/python3.8/site-packages/nose/importer.py:12: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+    from imp import find_module, load_module, acquire_lock, release_lock
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================== 1 passed, 2 warnings in 0.08s =========================

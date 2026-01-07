@@ -1,0 +1,43 @@
+pytest test/worker_external_task_test.py::WorkerExternalTaskTest::test_external_dependency_completes_later
+RUN EVERY COMMAND
+0
+
+
+============================= test session starts ==============================
+platform linux -- Python 3.8.3, pytest-7.3.1, pluggy-1.0.0
+rootdir: /home/user/BugsInPy/temp/projects/luigi
+collected 1 item
+
+test/worker_external_task_test.py .                                      [100%]
+
+=============================== warnings summary ===============================
+../../../../../../opt/conda/envs/c707e723d516669fe502b5e71c081ee7/lib/python3.8/site-packages/pkg_resources/__init__.py:121
+  /opt/conda/envs/c707e723d516669fe502b5e71c081ee7/lib/python3.8/site-packages/pkg_resources/__init__.py:121: DeprecationWarning: pkg_resources is deprecated as an API
+    warnings.warn("pkg_resources is deprecated as an API", DeprecationWarning)
+
+test/worker_external_task_test.py::WorkerExternalTaskTest::test_external_dependency_completes_later
+test/worker_external_task_test.py::WorkerExternalTaskTest::test_external_dependency_completes_later
+test/worker_external_task_test.py::WorkerExternalTaskTest::test_external_dependency_completes_later
+  /opt/conda/envs/c707e723d516669fe502b5e71c081ee7/lib/python3.8/site-packages/luigi-1.3.0-py3.8.egg/luigi/parameter.py:232: DeprecationWarning: The use of the configuration [core] worker-keep-alive is deprecated. Please use [worker] keep_alive
+    return self._get_value(task_name, param_name) != _no_value
+
+test/worker_external_task_test.py::WorkerExternalTaskTest::test_external_dependency_completes_later
+test/worker_external_task_test.py::WorkerExternalTaskTest::test_external_dependency_completes_later
+test/worker_external_task_test.py::WorkerExternalTaskTest::test_external_dependency_completes_later
+  /opt/conda/envs/c707e723d516669fe502b5e71c081ee7/lib/python3.8/site-packages/luigi-1.3.0-py3.8.egg/luigi/parameter.py:235: DeprecationWarning: The use of the configuration [core] worker-keep-alive is deprecated. Please use [worker] keep_alive
+    value = self._get_value(task_name, param_name)
+
+test/worker_external_task_test.py::WorkerExternalTaskTest::test_external_dependency_completes_later
+test/worker_external_task_test.py::WorkerExternalTaskTest::test_external_dependency_completes_later
+test/worker_external_task_test.py::WorkerExternalTaskTest::test_external_dependency_completes_later
+  /opt/conda/envs/c707e723d516669fe502b5e71c081ee7/lib/python3.8/site-packages/luigi-1.3.0-py3.8.egg/luigi/parameter.py:232: DeprecationWarning: The use of the configuration [core] retry-external-tasks is deprecated. Please use [worker] retry_external_tasks
+    return self._get_value(task_name, param_name) != _no_value
+
+test/worker_external_task_test.py::WorkerExternalTaskTest::test_external_dependency_completes_later
+test/worker_external_task_test.py::WorkerExternalTaskTest::test_external_dependency_completes_later
+test/worker_external_task_test.py::WorkerExternalTaskTest::test_external_dependency_completes_later
+  /opt/conda/envs/c707e723d516669fe502b5e71c081ee7/lib/python3.8/site-packages/luigi-1.3.0-py3.8.egg/luigi/parameter.py:235: DeprecationWarning: The use of the configuration [core] retry-external-tasks is deprecated. Please use [worker] retry_external_tasks
+    value = self._get_value(task_name, param_name)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================== 1 passed, 13 warnings in 1.20s ========================

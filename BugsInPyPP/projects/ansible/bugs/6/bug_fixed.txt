@@ -1,0 +1,39 @@
+pytest test/units/galaxy/test_collection_install.py::test_build_requirement_from_path_with_manifest
+pytest test/units/galaxy/test_collection_install.py::test_build_requirement_from_path_no_version
+pytest test/units/galaxy/test_collection_install.py::test_add_collection_requirement_to_unknown_installed_version
+RUN EVERY COMMAND
+0
+
+
+============================= test session starts ==============================
+platform linux -- Python 3.6.9, pytest-3.10.1, py-1.11.0, pluggy-0.13.1
+rootdir: /home/user/BugsInPy/temp/projects/ansible, inifile:
+collected 3 items
+
+test/units/galaxy/test_collection_install.py ...                         [100%]
+
+=========================== 3 passed in 0.74 seconds ===========================
+RUN EVERY COMMAND
+1
+pytest test/units/galaxy/test_collection_install.py::test_build_requirement_from_path_with_manifest
+
+============================= test session starts ==============================
+platform linux -- Python 3.6.9, pytest-3.10.1, py-1.11.0, pluggy-0.13.1
+rootdir: /home/user/BugsInPy/temp/projects/ansible, inifile:
+collected 1 item
+
+test/units/galaxy/test_collection_install.py .                           [100%]
+
+=========================== 1 passed in 0.60 seconds ===========================
+RUN EVERY COMMAND
+2
+pytest test/units/galaxy/test_collection_install.py::test_build_requirement_from_path_no_version
+
+============================= test session starts ==============================
+platform linux -- Python 3.6.9, pytest-3.10.1, py-1.11.0, pluggy-0.13.1
+rootdir: /home/user/BugsInPy/temp/projects/ansible, inifile:
+collected 1 item
+
+test/units/galaxy/test_collection_install.py .                           [100%]
+
+=========================== 1 passed in 0.54 seconds ===========================

@@ -1,0 +1,38 @@
+pytest test/contrib/hive_test.py::HiveCommandClientTest::test_table_exists
+pytest test/contrib/hive_test.py::HiveCommandClientTest::test_apacheclient_table_exists
+RUN EVERY COMMAND
+0
+
+
+============================= test session starts ==============================
+platform linux -- Python 3.8.3, pytest-7.3.1, pluggy-1.0.0
+rootdir: /home/user/BugsInPy/temp/projects/luigi
+collected 1 item
+
+test/contrib/hive_test.py .                                              [100%]
+
+=============================== warnings summary ===============================
+../../../../../../opt/conda/envs/cbba6d2f9d9935027e4b144de602ee6e/lib/python3.8/site-packages/luigi-1.1.3-py3.8.egg/luigi/deprecate_kwarg.py:52
+  /opt/conda/envs/cbba6d2f9d9935027e4b144de602ee6e/lib/python3.8/site-packages/luigi-1.1.3-py3.8.egg/luigi/deprecate_kwarg.py:52: DeprecationWarning: is_global is deprecated and will be removed. Please use either  (a) class level config (eg. --MyTask-my-param 42) (b) a separate Config class with global settings on it
+    return function(*args, **kwargs)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+========================= 1 passed, 1 warning in 0.04s =========================
+RUN EVERY COMMAND
+1
+pytest test/contrib/hive_test.py::HiveCommandClientTest::test_table_exists
+
+============================= test session starts ==============================
+platform linux -- Python 3.8.3, pytest-7.3.1, pluggy-1.0.0
+rootdir: /home/user/BugsInPy/temp/projects/luigi
+collected 1 item
+
+test/contrib/hive_test.py .                                              [100%]
+
+=============================== warnings summary ===============================
+../../../../../../opt/conda/envs/cbba6d2f9d9935027e4b144de602ee6e/lib/python3.8/site-packages/luigi-1.1.3-py3.8.egg/luigi/deprecate_kwarg.py:52
+  /opt/conda/envs/cbba6d2f9d9935027e4b144de602ee6e/lib/python3.8/site-packages/luigi-1.1.3-py3.8.egg/luigi/deprecate_kwarg.py:52: DeprecationWarning: is_global is deprecated and will be removed. Please use either  (a) class level config (eg. --MyTask-my-param 42) (b) a separate Config class with global settings on it
+    return function(*args, **kwargs)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+========================= 1 passed, 1 warning in 0.04s =========================

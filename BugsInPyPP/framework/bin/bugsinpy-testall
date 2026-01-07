@@ -1,0 +1,144 @@
+#!/bin/bash
+
+### bugsinpy-testall reproduces all the bugs
+# Similar to <repo>/verify.sh included in some projects.
+# This approach improves the current setup by having the proper environment
+# and replacing virtualenv with conda within the BugsInPy framework.
+# The expected outputs for each test are added to every bug.
+# "<repo>/bugs/<bugid>/bug_buggy.txt" shows the buggy version output.
+# "<repo>/bugs/<bugid>/bug_fixed.txt" shows the fixed version output.
+# An index result is provided in BugsInPy/projects/bugsinpy-index.csv.
+# The index contains reproducibility result status:
+# - "fail": a failure expected in the buggy version.
+# - "pass": a success expected in the fixed version.
+# - "error": a hard error that prevents the test from being executed.
+# A temporary full log file is provided in every temp/<repo>/logs.txt.
+
+usage="
+       -h
+             show this help
+       -c
+             cleanup temp directory
+       -p
+             specify multiple project:start:end or project:end or project:
+             Ex;
+             pandas:75:100 (reproduce tests 75 to 100 for pandas)
+             black:5 ansible: (only reproduces test 5 for black and all for ansible)
+"
+
+dir_of_script=$(dirname $0)
+bugsinpy_location=$(realpath $dir_of_script/../..)
+temp_projects="$bugsinpy_location/temp/projects"
+index_name="bugsinpy-index.csv"
+index_file="$bugsinpy_location/projects/$index_name"
+
+case $1 in
+ -[h?] | --help)
+    echo "Usage: ${0##*/} [ --help ]"
+    echo "$usage"
+    exit 0;;
+ -c)
+    rm -rf "$temp_projects"
+    exit 0;;
+ -p)
+    projects="${@:2}";;
+esac
+
+mkdir -p $temp_projects
+
+if ! echo $projects | grep -q ":"; then
+  projects=$(ls $bugsinpy_location/projects | grep -v $index_name)
+fi
+
+if [ ! -f $index_file ]; then
+  echo "repo,bugid,version,result" > $index_file
+fi
+
+# Iterate over the projects
+for project_name in $projects; do
+
+  # Get the number of bugs in the project
+  if echo $projects | grep -q ":"; then
+    start=$(echo $project_name | cut -d ":" -f 2)
+    finish=$(echo $project_name | cut -d ":" -f 3)
+    project=$(echo $project_name | cut -d ":" -f 1)
+    if [[ "$start" == "" ]]; then
+      finish=$(ls $bugsinpy_location/projects/$project/bugs | wc -l)
+      start=1
+    elif [[ "$finish" == "" ]]; then
+      finish=$start
+    fi
+  else
+    start=1
+    finish=$(ls $bugsinpy_location/projects/$project_name/bugs | wc -l)
+  fi
+
+  work_dir="$temp_projects/$project"
+
+  # For each bug, execute the test
+  for bug in $(seq $start $finish); do
+
+    bug_source_dir="$bugsinpy_location/projects/$project/bugs/$bug"
+
+    if ! grep "$project,$bug," $index_file && [ -d "$bug_source_dir" ]; then
+
+      # Make sure requirements.txt always exist even if empty
+      touch $bug_source_dir/requirements.txt
+
+      bug_info="$work_dir/bugsinpy_bug.info"
+
+      # Test buggy (0) and fixed (1) versions
+      for version_id in 0 1; do
+
+        if [[ $version_id == "0" ]];then
+          version="buggy"
+        else
+          version="fixed"
+        fi
+
+        bugsinpy-checkout -p $project -v $version_id -i $bug -w $temp_projects &>> $temp_projects/$project-checkout-logs.txt
+        cd $work_dir
+
+        # Cleanup requirements.txt from unwanted spaces
+        # dos2unix is required to make sure requirements.txt is always the correct encoding
+        requirements="$work_dir/bugsinpy_requirements.txt"
+        sed -i -e '/^\s*#.*$/d' -e '/^\s*$/d' "$requirements"
+        dos2unix $requirements &>/dev/null
+
+        # Add environment
+        . /opt/conda/etc/profile.d/conda.sh &>> $work_dir/logs.txt
+        # Generate unique hash for the current enviroment
+        bug_python_version=$(grep -o "3\..\.." $bug_info)
+        conda_env_name=$(cat <(echo $bug_python_version) "$requirements" | md5sum | cut -d' ' -f 1)
+
+        if ! conda env list | grep -q "$conda_env_name"; then
+          conda create -n $conda_env_name -y python=$bug_python_version pytest &>> $work_dir/logs.txt
+        fi
+
+        bugsinpy-compile &>> $work_dir/logs.txt
+        bugsinpy-test &> "$bug_source_dir/bug_$version.txt"
+
+        # Check for keywords in test output
+        # buggy (0) expected to fail
+        # fixed (1) expected to pass
+        if grep -q "= ERRORS =" "$bug_source_dir/bug_$version.txt" || \
+          grep -q "ImportError while loading" "$bug_source_dir/bug_$version.txt" || \
+          grep -q ": command not found" "$bug_source_dir/bug_$version.txt" || \
+          grep -q "You have not compile this project" "$bug_source_dir/bug_$version.txt"
+        then
+          echo "$project,$bug,$version,error" | tee -a $index_file
+        elif grep -q "= FAILURES =" "$bug_source_dir/bug_$version.txt" || \
+          grep -q "FAILED (" "$bug_source_dir/bug_$version.txt" || \
+          [ -f "$work_dir/bugsinpy_fail.txt" ]
+        then
+          echo "$project,$bug,$version,fail" | tee -a $index_file
+        elif grep -iqwE "passed|OK" "$bug_source_dir/bug_$version.txt"; then
+          echo "$project,$bug,$version,pass" | tee -a $index_file
+        else
+          echo "$project,$bug,$version,error" | tee -a $index_file
+        fi
+      done
+      # echo $LINENO # debug
+    fi
+  done
+done

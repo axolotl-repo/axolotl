@@ -1,0 +1,84 @@
+\documentclass[conference]{IEEEtran}
+%\IEEEoverridecommandlockouts
+% The preceding line is only needed to identify funding in the first footnote. If that is unneeded, please comment it out.
+
+\usepackage[]{mdframed}
+\usepackage[backend=biber,style=ieee]{biblatex}
+\usepackage{graphicx}
+\addbibresource{samuelgrayson.bib}
+\addbibresource{faustinoaguilar.bib}
+\addbibresource{IEEEabrv.bib}
+
+\input{pandoc_header.tex}
+
+\usepackage{cleveref}
+
+\begin{document}
+
+\title{Reproducing and Improving the BugsInPy Dataset}
+
+\author{\IEEEauthorblockN{Faustino Aguilar}
+\IEEEauthorblockA{Dept.\ of Computer Engineering \\
+University of Panama \\
+Panama City, Panama \\
+orcid.org/0009-0000-1375-1143}
+\and  
+\IEEEauthorblockN{Samuel Grayson}
+\IEEEauthorblockA{Dept.\ of Computer Science \\
+University of Illinois Urbana-Champaign \\
+Urbana, IL, USA \\
+orcid.org/0000-0001-5411-356X}
+\and
+\IEEEauthorblockN{Darko Marinov}
+\IEEEauthorblockA{Dept.\ of Computer Science \\
+University of Illinois Urbana-Champaign \\
+Urbana, IL, USA \\
+orcid.org/0000-0001-5023-3492}
+}
+
+\maketitle
+
+\begin{abstract}
+  We assess the reproducibility of the BugsInPy dataset less than three years after its original publication.
+  The bug dataset provides some information about the software environment in which the code should be run, but this information can be incomplete or can decay into something uninstallable over time.
+  We rectify as many of these problems as we can and redesign the original dataset to be more easily reusable and reproducible by future research projects.
+  Based on our experience, we offer suggestions to authors of Python artifacts to improve their reproducibility.
+\end{abstract}
+
+\begin{IEEEkeywords}
+reproducibility, bug database, BugsInPy, Python, package managers, Pip, Conda, containers, Docker
+\end{IEEEkeywords}
+
+% http://www.ieee-scam.org/2023/#cfpengtrack
+
+\input{meat.tex}
+
+\printbibliography
+
+\appendix[Code, Data, and Reproducing]
+
+A rolling release of all our code and data can be found at \url{https://github.com/reproducing-research-projects/BugsInPy}.
+
+Our code includes:
+\begin{itemize}
+  \item \texttt{Dockerfile} docker file setup to build projects images.
+  \item \texttt{docker-compose.yml} orchestration to run containers.
+  \item \texttt{framework/bin/bugsinpy-testall} script to automate execution of BugsInPy framework scripts.
+\end{itemize}
+
+To reproduce all bugs in a project, for example \texttt{httpie}, run:
+
+\begin{verbatim*}
+$rm -f projects/bugsinpy-index.csv
+$docker compose up setup httpie --build
+Cleaning up temp folder ...
+Reproducing bugs please wait ...
+-------------------------
+httpie,1,buggy,fail
+...
+\end{verbatim*}
+
+After these commands, the new results will be in the file named \texttt{bugsinpy-index.csv}.
+See \texttt{README.md} for more detailed information.
+
+\end{document}

@@ -1,0 +1,321 @@
+#!/bin/bash
+
+usage="
+    -w work_dir
+        The working directory to run the test. Default will be the current directory.
+    -t single_test
+        Run coverage from single test case by input. Default will run coverage from test cases that relevant from bugs. Format for pytest: <test_file_path>::<test_method>. Format for unittest: <test_file_path_without.py>.<test_class>.<test_method> . Use bugsinpy-info to get the information about the project.
+    -a
+        Run coverage from all test cases in the project. Default will run coverage from test cases that relevant from bugs
+    -r
+        Run coverage from test cases that relevant from bugs (Default)
+    -s
+        Run single test without re-compile(source file not changed)
+"
+
+case $1 in
+    -[h?] | --help)
+        cat <<- ____HALP
+        Usage: ${0##*/} [ --help ]
+        $usage
+____HALP
+        exit 0
+        ;;
+esac
+
+run_all="0"
+relevant="0"
+
+single_test=""
+skip_build="0"
+###Read the flag of checkout
+while getopts ht:w:sar flag; do
+    case "${flag}" in
+        h)
+            echo "Usage: $usage"
+            exit 0
+            ;;
+        w) work_dir=${OPTARG} ;;
+        t) single_test=${OPTARG} ;;
+        s) skip_build="1" ;;
+        a) run_all="1" ;;
+        r) relevant="1" ;;
+    esac
+done
+
+###Update the work directory
+if [ "$work_dir" == "" ]; then
+    work_dir=$(pwd)
+fi
+
+if [[ $work_dir == */ ]]; then
+    temp_work_dir="$work_dir"
+    work_dir=${temp_work_dir::-1}
+fi
+
+if [[ ! -e "$work_dir/bugsinpy_run_test.sh" ]]; then
+    echo "This is not a checkout project folder"
+    exit
+fi
+
+if [[ ! -e "$work_dir/bugsinpy_compile_flag" ]]; then
+    echo "You have not compile this project"
+    exit
+fi
+
+if [[ "$relevant" == "1" ]]; then
+    run_all="0"
+    single_test=""
+fi
+
+rm -f "$work_dir/bugsinpy_coverage.txt"
+rm -f "$work_dir/bugsinpy_coverage_singletest.txt"
+rm -f "$work_dir/bugsinpy_coverage_alltest.txt"
+
+###Activate environment
+cd "$work_dir"
+default_conda_path=$HOME/anaconda3
+conda_path="${CONDA_PATH:-$default_conda_path}"
+source $conda_path/etc/profile.d/conda.sh
+bug_python_version=$(grep -o "3\..\.." "bugsinpy_bug.info")
+conda_env_name="$(grep -oP "(?<=project_name=).*" bugsinpy_bug.info)_$(grep -oP "(?<=bug_id=).*" bugsinpy_bug.info)"
+project_name=$(grep -oP "(?<=project_name=).*" bugsinpy_bug.info)
+bug_id=$(grep -oP "(?<=bug_id=).*" bugsinpy_bug.info)
+
+if ! conda activate $conda_env_name; then
+    echo "conda env not found, please run bugsinpy-compile first"
+    exit 1
+fi
+
+if [[ $project_name == "matplotlib" ]]; then
+    export MPLLOCALFREETYPE=1
+fi
+
+if [[ "$skip_build" == "0" ]]; then
+    echo "Running install script..."
+    ###Read and run setup.sh to apply the source change
+    run_setup_all=""
+    if [[ -f "bugsinpy_install.sh" ]]; then
+        DONE=false
+        until $DONE; do
+            read || DONE=true
+            run_setup_all+="$REPLY;"
+            echo $REPLY
+        done < "bugsinpy_install.sh"
+    fi
+
+    IFS=';' read -r -a run_setup <<< "$run_setup_all"
+
+    for index in "${!run_setup[@]}"; do
+        run_setup_trail=${run_setup[index]}
+        run_setup_now=$(echo $run_setup_trail | sed -e 's/\r//g')
+        $run_setup_now
+    done
+    pip install pytest-cov
+else
+    echo "[INFO] Skip recompile due to -s (skip build) flag (no-source file changed)."
+fi
+
+# Check coverage package
+if ! conda list | grep -q coverage; then
+    echo "Coverage package not found, installing..."
+    conda install -y coverage
+fi
+
+final_result=0
+pytest="0"
+#read file run_test.sh
+run_command_all=""
+DONE=false
+until $DONE; do
+    read || DONE=true
+    if [ "$REPLY" != "" ]; then
+        run_command_all+="$REPLY;"
+        if [[ "$REPLY" == *"pytest"* || "$REPLY" == *"py.test"* ]]; then
+            pytest="1"
+        fi
+    fi
+done < "bugsinpy_run_test.sh"
+IFS=';' read -r -a run_command <<< "$run_command_all"
+
+if [[ "$run_all" == "0" && "$single_test" == "" ]]; then
+    if [[ "$pytest" == "1" ]]; then
+        run_command_filter=""
+        echo "Run related tests..."
+        for index in "${!run_command[@]}"; do
+            run_command_trail=${run_command[index]}
+            run_command_now=$(echo $run_command_trail | sed -e 's/\r//g')
+
+            res_first=$(coverage run --omit=/tmp/* -m $run_command_now 2>&1)
+            test_result=$?
+            echo "$run_command_now: $test_result"
+
+            if [[ $test_result -ne 0 ]]; then
+                final_result=1
+            fi
+
+            if [[ ${res_first##*$'\n'} == *"OK"* || ${res_first##*$'\n'} == *"pass"* || $res_first == *"passed"* || $res_first == *"OK "* ]]; then
+                run_command_filter+="$run_command_now;"
+            fi
+            echo "BugsInPy test: $run_command_now: $test_result" &>> "bugsinpy_coverage.txt"
+            echo "$res_first" &>> "bugsinpy_coverage.txt"
+
+            coverage xml --omit=/tmp/* -o bugsinpy_coverage_result.xml 2>&1 | tee -a "bugsinpy_coverage.txt"
+        done
+    else
+        run_command_filter=""
+        for index in "${!run_command[@]}"; do
+            run_command_trail=${run_command[index]}
+
+            run_command_now=$(echo $run_command_trail | sed -e 's/\r//g')
+            echo "RUN EVERY COMMAND"
+            echo "$index"
+            echo "$run_command_now"
+            if [[ "$run_command_now" == *"unittest"* ]]; then
+                searchstring="unittest "
+                temp_run=${run_command_now##*$searchstring}
+                run_command_now="unittest $temp_run"
+            else
+                if [[ "$run_command_now" == "python -m "* ]]; then
+                    searchstring="python -m "
+                else
+                    searchstring="python "
+                fi
+                echo "$searchstring"
+                temp_run=${run_command_now##*$searchstring}
+                run_command_now="unittest $temp_run"
+                echo "$run_command_now"
+            fi
+
+            res_first=$(coverage run --omit=/tmp/* -m $run_command_now 2>&1)
+            test_result=$?
+            echo "$run_command_now: $test_result"
+            echo "BugsInPy test: $run_command_now: $test_result" &>> "bugsinpy_coverage.txt"
+            echo "$res_first" &>> "bugsinpy_coverage.txt"
+
+            if [[ $test_result -ne 0 ]]; then
+                final_result=1
+            fi
+
+            coverage xml --omit=/tmp/* -o bugsinpy_coverage_result.xml 2>&1 | tee -a "bugsinpy_coverage.txt"
+        done
+    fi
+
+elif [[ "$run_all" == "1" ]]; then
+    if [[ -f "bugsinpy_coverage_alltest_result.xml" ]]; then
+        rm "bugsinpy_coverage_alltest_result.xml"
+    fi
+    if [[ "$pytest" == "1" ]]; then
+        echo "Run pytest"
+        if [[ "$project_name" == "ansible" ]]; then
+            echo "coverage run --omit=/tmp/* -m pytest test/units/" &>> "bugsinpy_coverage_alltest.txt"
+            PYTHONPATH=./lib coverage run --omit=/tmp/* -m pytest test/units/ 2>&1 | tee -a "bugsinpy_coverage_alltest.txt"
+        elif [[ $project_name == "fastapi" ]]; then
+            echo "coverage run --omit=/tmp/* -m pytest" &>> "bugsinpy_coverage_alltest.txt"
+            PYTHONPATH=./docs/src coverage run --omit=/tmp/* -m pytest 2>&1 | tee -a "bugsinpy_coverage_alltest.txt"
+        elif [[ "$project_name" == "httpie" && $bug_id == "5" ]]; then
+            echo "coverage run --omit=/tmp/* -m pytest test/units/" &>> "bugsinpy_coverage_alltest.txt"
+            coverage run --omit=/tmp/* -m pytest tests/tests.py 2>&1 | tee -a "bugsinpy_coverage_alltest.txt"
+        elif [[ "$project_name" == "httpie" ]]; then
+            echo "coverage run --omit=/tmp/* -m pytest tests/" &>> "bugsinpy_coverage_alltest.txt"
+            coverage run --omit=/tmp/* -m pytest tests/ --ignore tests/test_ssl.py 2>&1 | tee -a "bugsinpy_coverage_alltest.txt"
+        elif [[ "$project_name" == "luigi" ]]; then
+            echo "coverage run --omit=/tmp/* -m pytest" &>> "bugsinpy_coverage_alltest.txt"
+            coverage run --omit=/tmp/* -m pytest test --ignore test/task_serialize_test.py --ignore test/_mysqldb_test.py \
+                --ignore test/contrib/azureblob_test.py --ignore test/contrib/batch_test.py --ignore test/contrib/ecs_test.py \
+                --ignore test/contrib/hdfs/ --ignore test/remote_scheduler_test.py --ignore test/rpc_test.py \
+                --ignore test/scheduler_parameter_visibilities_test.py --ignore test/server_test.py \
+                --ignore test/visualiser/visualiser_test.py 2>&1 | tee -a "bugsinpy_coverage_alltest.txt"
+        elif [[ "$project_name" == "pandas" ]]; then
+            # if [[ "$bug_id" == "150" || "$bug_id" == "160" || "$bug_id" == "162" || "$bug_id" == "168" ]]; then
+            #    echo "pytest pandas --ignore=pandas/tests/io/test_parquet.py" &>>"bugsinpy_coverage_alltest.txt"
+            #    pytest pandas --json-report --json-report-file=bugsinpy_coverage_alltest_result.json --json-report-indent=4 \
+            #       --json-report-omit log collectors warnings --ignore=pandas/tests/io/test_parquet.py \
+            #       --ignore pandas/tests/io/test_common.py 2>&1 | tee -a "bugsinpy_coverage_alltest.txt"
+            # else
+            echo "pytest pandas" &>> "bugsinpy_coverage_alltest.txt"
+            coverage run --omit=/tmp/* -m pytest pandas --ignore pandas/tests/io \
+                2>&1 | tee -a "bugsinpy_coverage_alltest.txt"
+            # fi
+        elif [[ "$project_name" == "sanic" && $bug_id == "5" ]]; then
+            echo "coverage run --omit=/tmp/* -m pytest " &>> "bugsinpy_coverage_alltest.txt"
+            coverage run --omit=/tmp/* -m pytest --ignore tests/test_redirect.py --ignore tests/test_server_events.py --ignore tests/test_signal_handlers.py \
+                --ignore tests/test_worker.py 2>&1 | tee -a "bugsinpy_coverage_alltest.txt"
+        elif [[ "$project_name" == "tqdm" ]]; then
+            echo "coverage run --omit=/tmp/* -m pytest tqdm/tests/tests_*.py" &>> "bugsinpy_coverage_alltest.txt"
+            coverage run --omit=/tmp/* -m pytest tqdm/tests/tests_*.py 2>&1 | tee -a "bugsinpy_coverage_alltest.txt"
+        else
+            echo "coverage run --omit=/tmp/* -m pytest" &>> "bugsinpy_coverage_alltest.txt"
+            coverage run --omit=/tmp/* -m pytest 2>&1 | tee -a "bugsinpy_coverage_alltest.txt"
+        fi
+        coverage xml --omit=/tmp/* -o bugsinpy_coverage_alltest_result.xml 2>&1 | tee -a "bugsinpy_coverage_alltest.txt"
+    else
+        echo "Run Unittest"
+        ###Read bug.info file
+        DONE=false
+        until $DONE; do
+            read || DONE=true
+            if [[ "$REPLY" == "test_file"* ]]; then
+                test_file_all="$(cut -d'"' -f 2 <<< $REPLY)"
+                IFS=';' read -r -a test_file <<< "$test_file_all"
+                test_file_now=${test_file[0]}
+            fi
+        done < "bugsinpy_bug.info"
+
+        echo "$test_file_now"
+        stop_loop_test="0"
+        access_test=""
+        if [[ "$test_file_now" != "" ]]; then
+            IFS='/' read -r -a test_file_ex <<< "$test_file_now"
+        fi
+
+        for index in "${!test_file_ex[@]}"; do
+            test_file_temp=${test_file_ex[index]}
+            if [[ "$stop_loop_test" == "0" ]]; then
+                if [[ "$test_file_temp" == *".py"* ]]; then
+                    stop_loop_test="1"
+                else
+                    if [[ "$test_file_temp" == "test" || "$test_file_temp" == "tests" ]]; then
+                        stop_loop_test="1"
+                    fi
+                    access_test+="$test_file_temp/"
+                fi
+            fi
+        done
+
+        echo "$access_test"
+        echo "coverage run -m unittest discover $access_test"
+
+        coverage run --omit=/tmp/* -m unittest discover $access_test 2>&1 | tee -a "bugsinpy_coverage_alltest.txt"
+        coverage xml --omit=/tmp/* -o bugsinpy_coverage_alltest_result.xml 2>&1 | tee -a "bugsinpy_coverage_alltest.txt"
+    fi
+
+elif [ "$single_test" != "" ]; then
+    if [[ "$pytest" == "1" ]]; then
+        coverage erase
+        coverage=$(PYTHONPATH='./lib:./docs/src' pytest --cov-report xml:bugsinpy_coverage_singletest_result.xml \
+                    --cov=. "$single_test" 2>&1)
+        test_result=$?
+        echo "$coverage"
+        echo "coverage run -m pytest $single_test" &>> "bugsinpy_coverage_singletest.txt"
+        echo "$coverage" &>> "bugsinpy_coverage_singletest.txt"
+    else
+        coverage erase
+        coverage=$(coverage run -m unittest -q "$single_test" 2>&1)
+        test_result=$?
+        echo "$coverage"
+        echo "coverage run -m unittest -q $single_test" &>> "bugsinpy_coverage_singletest.txt"
+        echo "$coverage" &>> "bugsinpy_coverage_singletest.txt"
+
+        coverage xml --omit=/tmp/* -o bugsinpy_coverage_singletest_result.xml 2>&1 | tee -a "bugsinpy_coverage_singletest.txt"
+    fi
+
+    if [[ $test_result -ne 0 ]]; then
+        final_result=1
+    fi
+
+fi
+
+###Deactivate the environment
+conda deactivate
+exit $final_result

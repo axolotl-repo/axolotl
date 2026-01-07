@@ -1,0 +1,4 @@
+vllm
+huggingface-hub
+flask
+openai

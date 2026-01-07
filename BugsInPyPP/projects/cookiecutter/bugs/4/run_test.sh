@@ -1,0 +1,1 @@
+pytest tests/test_hooks.py::TestExternalHooks::test_run_failing_hook

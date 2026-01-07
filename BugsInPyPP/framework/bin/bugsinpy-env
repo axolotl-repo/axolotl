@@ -1,0 +1,78 @@
+#!/bin/bash
+usage="-w work_dir
+             The working directory to compile the project. Default will be the current directory.
+"
+export PYTHONNOUSERSITE=1
+
+case $1 in
+    -[h?] | --help)
+        cat <<- ____HALP
+        Usage: ${0##*/} [ --help ]
+        $usage
+____HALP
+        exit 0
+        ;;
+esac
+
+###Read the flag of checkout
+while getopts p:i:v:w: flag; do
+    case "${flag}" in
+        w) work_dir=${OPTARG} ;;
+    esac
+done
+
+###Update the work directory
+if [ "$work_dir" == "" ]; then
+    work_dir=$(pwd)
+fi
+
+if [[ $work_dir == */ ]]; then
+    temp_work_dir="$work_dir"
+    work_dir=${temp_work_dir::-1}
+fi
+
+###Check work directory
+if [[ ! -e "$work_dir/bugsinpy_bug.info" ]]; then
+    echo "This is not a checkout project folder"
+    exit 1
+elif [[ ! -e "$work_dir/bugsinpy_requirements.txt" ]]; then
+    echo "This is not a checkout project folder"
+    exit 1
+elif [[ ! -e "$work_dir/bugsinpy_run_test.sh" ]]; then
+    echo "This is not a checkout project folder"
+    exit 1
+fi
+
+###Add environment
+default_conda_path=$HOME/anaconda3
+conda_path="${CONDA_PATH:-$default_conda_path}"
+source $conda_path/etc/profile.d/conda.sh
+# Cleanup requirements.txt from unwanted spaces
+sed -i -e '/^\s*#.*$/d' -e '/^\s*$/d' "$work_dir/bugsinpy_requirements.txt"
+# dos2unix is required to make sure requirements.txt is always the correct encoding
+dos2unix $work_dir/bugsinpy_requirements.txt &> /dev/null
+# Generate unique hash for the current enviroment
+project_name=$(grep -oP "(?<=project_name=).*" $work_dir/bugsinpy_bug.info)
+bug_id=$(grep -oP "(?<=bug_id=).*" $work_dir/bugsinpy_bug.info)
+bug_python_version=$(grep -o "3\..\.." "$work_dir/bugsinpy_bug.info")
+conda_env_name="${project_name}_${bug_id}"
+
+if conda env list | grep -qE "^$conda_env_name\s"; then
+    echo "conda environment $conda_env_name already exists, Removing..."
+    conda remove -n $conda_env_name --all -y
+fi
+
+echo "creating new conda environment ($conda_env_name)"
+conda create -n $conda_env_name -y python=$bug_python_version
+
+# set env for some project
+# PySnooper: pip install python_toolbox
+# pandas: export CFLAGS="-Wno-error=array-bounds" , pip install setuptools==66.1.1
+# luigi: pip install setuptools=66.1.1
+
+if ! conda activate $conda_env_name; then
+    echo "Failed to activate conda environment $conda_env_name"
+    exit 1
+fi
+
+conda deactivate

@@ -1,0 +1,1 @@
+python -mpip install -ve .

@@ -1,0 +1,26 @@
+pytest test/units/modules/system/test_pamd.py::PamdServiceTestCase::test_remove_first_rule
+pytest test/units/modules/system/test_pamd.py::PamdServiceTestCase::test_remove_last_rule
+RUN EVERY COMMAND
+0
+
+
+============================= test session starts ==============================
+platform linux -- Python 3.6.9, pytest-3.10.1, py-1.11.0, pluggy-0.13.1
+rootdir: /home/user/BugsInPy/temp/projects/ansible, inifile:
+collected 1 item
+
+test/units/modules/system/test_pamd.py .                                 [100%]
+
+=========================== 1 passed in 0.03 seconds ===========================
+RUN EVERY COMMAND
+1
+pytest test/units/modules/system/test_pamd.py::PamdServiceTestCase::test_remove_first_rule
+
+============================= test session starts ==============================
+platform linux -- Python 3.6.9, pytest-3.10.1, py-1.11.0, pluggy-0.13.1
+rootdir: /home/user/BugsInPy/temp/projects/ansible, inifile:
+collected 1 item
+
+test/units/modules/system/test_pamd.py .                                 [100%]
+
+=========================== 1 passed in 0.02 seconds ===========================

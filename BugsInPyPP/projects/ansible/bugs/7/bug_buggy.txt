@@ -1,0 +1,48 @@
+pytest test/units/modules/network/eos/test_eos_vlans.py::TestEosVlansModule::test_eos_vlan_replaced
+RUN EVERY COMMAND
+0
+
+
+============================= test session starts ==============================
+platform linux -- Python 3.6.9, pytest-3.10.1, py-1.11.0, pluggy-0.13.1
+rootdir: /home/user/BugsInPy/temp/projects/ansible, inifile:
+collected 1 item
+
+test/units/modules/network/eos/test_eos_vlans.py F                       [100%]
+
+=================================== FAILURES ===================================
+__________________ TestEosVlansModule.test_eos_vlan_replaced ___________________
+
+self = <units.modules.network.eos.test_eos_vlans.TestEosVlansModule testMethod=test_eos_vlan_replaced>
+
+    def test_eos_vlan_replaced(self):
+        self.execute_show_command.return_value = []
+        set_module_args(dict(
+            config=[dict(
+                vlan_id=10,
+                name="tenreplaced",
+                state="suspend"
+            )], state="replaced"
+        ))
+        commands = ['vlan 10', 'name tenreplaced', 'state suspend']
+>       self.execute_module(changed=True, commands=commands)
+
+test/units/modules/network/eos/test_eos_vlans.py:111: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+test/units/modules/network/eos/eos_module.py:79: in execute_module
+    self.assertEqual(sorted(commands), sorted(result['commands']), result['commands'])
+E   AssertionError: Lists differ: ['name tenreplaced', 'state suspend', 'vlan 10'] != ['name tenreplaced', 'no name', 'state suspend', 'vlan 10']
+E   
+E   First differing element 1:
+E   'state suspend'
+E   'no name'
+E   
+E   Second list contains 1 additional elements.
+E   First extra element 3:
+E   'vlan 10'
+E   
+E   - ['name tenreplaced', 'state suspend', 'vlan 10']
+E   + ['name tenreplaced', 'no name', 'state suspend', 'vlan 10']
+E   ?                      +++++++++++
+E    : ['vlan 10', 'name tenreplaced', 'state suspend', 'no name']
+=========================== 1 failed in 0.13 seconds ===========================

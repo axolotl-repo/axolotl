@@ -1,0 +1,29 @@
+pytest tests/test_requests.py::test_url_for_without_server_name
+RUN EVERY COMMAND
+0
+
+
+============================= test session starts ==============================
+platform linux -- Python 3.8.3, pytest-5.2.1, py-1.8.1, pluggy-0.13.1
+benchmark: 3.2.3 (defaults: timer=time.perf_counter disable_gc=False min_rounds=5 min_time=0.000005 max_time=1.0 calibration_precision=10 warmup=False warmup_iterations=100000)
+rootdir: /home/user/BugsInPy/temp/projects/sanic, inifile: tox.ini
+plugins: benchmark-3.2.3, sugar-0.9.3, sanic-1.6.1, cov-2.9.0
+collected 1 item
+
+tests/test_requests.py .                                                 [100%]
+
+=============================== warnings summary ===============================
+/opt/conda/envs/dc0cf70dcd569695fc404e40afc16e1f/lib/python3.8/site-packages/_pytest/mark/structures.py:321
+  /opt/conda/envs/dc0cf70dcd569695fc404e40afc16e1f/lib/python3.8/site-packages/_pytest/mark/structures.py:321: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/latest/mark.html
+    warnings.warn(
+
+tests/test_requests.py::test_url_for_without_server_name
+  /home/user/BugsInPy/temp/projects/sanic/sanic/server.py:135: DeprecationWarning: The loop argument is deprecated since Python 3.8, and scheduled for removal in Python 3.10.
+    self._not_paused = asyncio.Event(loop=loop)
+
+tests/test_requests.py::test_url_for_without_server_name
+  /home/user/BugsInPy/temp/projects/sanic/sanic/server.py:919: DeprecationWarning: The loop argument is deprecated since Python 3.8, and scheduled for removal in Python 3.10.
+    _shutdown = asyncio.gather(*coros, loop=loop)
+
+-- Docs: https://docs.pytest.org/en/latest/warnings.html
+======================== 1 passed, 3 warnings in 0.28s =========================

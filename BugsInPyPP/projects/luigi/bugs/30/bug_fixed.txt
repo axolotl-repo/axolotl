@@ -1,0 +1,38 @@
+pytest test/test_event_callbacks.py::TestEventCallbacks::test_failure
+pytest test/test_event_callbacks.py::TestEventCallbacks::test_processing_time_handler_failure
+RUN EVERY COMMAND
+0
+
+
+============================= test session starts ==============================
+platform linux -- Python 3.8.3, pytest-7.3.1, pluggy-1.0.0
+rootdir: /home/user/BugsInPy/temp/projects/luigi
+collected 1 item
+
+test/test_event_callbacks.py .                                           [100%]
+
+=============================== warnings summary ===============================
+test/test_event_callbacks.py::TestEventCallbacks::test_failure
+  /opt/conda/envs/9ed9268286bb83546f47443e1747a47b/lib/python3.8/site-packages/luigi-1.1.3-py3.8.egg/luigi/worker.py:266: UserWarning: Task EmptyTask(fail=True) without outputs has no custom complete() method
+    is_complete = task.complete()
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+========================= 1 passed, 1 warning in 0.04s =========================
+RUN EVERY COMMAND
+1
+pytest test/test_event_callbacks.py::TestEventCallbacks::test_failure
+
+============================= test session starts ==============================
+platform linux -- Python 3.8.3, pytest-7.3.1, pluggy-1.0.0
+rootdir: /home/user/BugsInPy/temp/projects/luigi
+collected 1 item
+
+test/test_event_callbacks.py .                                           [100%]
+
+=============================== warnings summary ===============================
+test/test_event_callbacks.py::TestEventCallbacks::test_processing_time_handler_failure
+  /opt/conda/envs/9ed9268286bb83546f47443e1747a47b/lib/python3.8/site-packages/luigi-1.1.3-py3.8.egg/luigi/worker.py:266: UserWarning: Task EmptyTask(fail=True) without outputs has no custom complete() method
+    is_complete = task.complete()
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+========================= 1 passed, 1 warning in 0.04s =========================

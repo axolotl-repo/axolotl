@@ -1,0 +1,13 @@
+pytest test/central_planner_test.py::CentralPlannerTest::test_assistant_get_work_external_task
+RUN EVERY COMMAND
+0
+
+
+============================= test session starts ==============================
+platform linux -- Python 3.8.3, pytest-7.3.1, pluggy-1.0.0
+rootdir: /home/user/BugsInPy/temp/projects/luigi
+collected 1 item
+
+test/central_planner_test.py .                                           [100%]
+
+============================== 1 passed in 0.04s ===============================
